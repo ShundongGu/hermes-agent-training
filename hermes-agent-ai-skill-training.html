@@ -1,0 +1,747 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Hermes Agent 本地部署与 PRD 一键发布｜AI Skill 宣讲培训方案</title>
+  <style>
+    :root{
+      --bg:#07111f;--panel:#0d1a2b;--panel2:#11243a;--line:#243951;
+      --text:#e9f2ff;--muted:#9fb1c7;--cyan:#41d9d0;--blue:#6ba7ff;
+      --purple:#ad8cff;--orange:#ffb35c;--red:#ff7383;--green:#62dfa0;
+      --shadow:0 20px 60px rgba(0,0,0,.34);--radius:22px
+    }
+    *{box-sizing:border-box}html{scroll-behavior:smooth}
+    body{margin:0;background:
+      radial-gradient(900px 600px at 90% -10%,rgba(107,167,255,.17),transparent 60%),
+      radial-gradient(800px 500px at -10% 20%,rgba(65,217,208,.10),transparent 60%),var(--bg);
+      color:var(--text);font:15px/1.78 Inter,"PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+    a{color:var(--cyan);text-decoration:none}a:hover{text-decoration:underline}
+    .progress{position:fixed;z-index:99;top:0;left:0;width:0;height:3px;background:linear-gradient(90deg,var(--cyan),var(--purple))}
+    .topbar{position:sticky;z-index:50;top:0;backdrop-filter:blur(18px);background:rgba(7,17,31,.76);border-bottom:1px solid rgba(255,255,255,.08)}
+    .topbar-inner{max-width:1220px;margin:auto;padding:12px 22px;display:flex;align-items:center;gap:18px}
+    .brand{font-weight:800;letter-spacing:.04em;white-space:nowrap}.brand i{color:var(--cyan);font-style:normal}
+    .topnav{display:flex;gap:17px;overflow:auto;white-space:nowrap;margin-left:auto;font-size:13px}
+    .topnav a{color:var(--muted)}.topnav a:hover{color:var(--text);text-decoration:none}
+    .wrap{max-width:1220px;margin:auto;padding:0 22px 80px}
+    .hero{min-height:720px;display:grid;grid-template-columns:1.05fr .95fr;align-items:center;gap:40px;padding:70px 0}
+    .eyebrow{display:inline-flex;align-items:center;gap:9px;padding:7px 12px;border:1px solid rgba(65,217,208,.28);border-radius:99px;background:rgba(65,217,208,.07);color:var(--cyan);font-size:12px;font-weight:700;letter-spacing:.12em}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--cyan);box-shadow:0 0 16px var(--cyan)}
+    h1{font-size:clamp(42px,6vw,76px);line-height:1.05;letter-spacing:-.045em;margin:25px 0}
+    h1 span{background:linear-gradient(100deg,var(--cyan),var(--blue) 48%,var(--purple));-webkit-background-clip:text;color:transparent}
+    .lead{max-width:690px;color:#bdd0e6;font-size:18px}
+    .meta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}.pill{padding:8px 12px;border:1px solid var(--line);border-radius:10px;color:var(--muted);font-size:12px;background:rgba(255,255,255,.025)}
+    .hero-art,.figure{border:1px solid var(--line);border-radius:var(--radius);background:linear-gradient(145deg,rgba(17,36,58,.96),rgba(8,21,36,.96));box-shadow:var(--shadow);overflow:hidden}
+    .hero-art{padding:20px}.hero-art svg{display:block;width:100%;height:auto}
+    section{scroll-margin-top:76px;margin-top:84px}
+    .section-no{font:800 12px/1 ui-monospace,SFMono-Regular,monospace;color:var(--cyan);letter-spacing:.15em}
+    h2{font-size:clamp(29px,4vw,44px);line-height:1.2;letter-spacing:-.025em;margin:10px 0 16px}
+    h3{font-size:22px;margin:34px 0 12px}h4{font-size:16px;margin:24px 0 8px;color:#d7e8fb}
+    .sub{color:var(--muted);max-width:850px;font-size:16px}
+    .grid{display:grid;gap:18px}.g2{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g4{grid-template-columns:repeat(4,1fr)}
+    .card{position:relative;padding:22px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(145deg,rgba(17,36,58,.8),rgba(11,26,43,.8))}
+    .card h3,.card h4{margin-top:0}.card p:last-child{margin-bottom:0}.kpi{font-size:34px;font-weight:800;color:var(--cyan)}
+    .icon{display:grid;place-items:center;width:42px;height:42px;border-radius:13px;margin-bottom:15px;background:rgba(65,217,208,.1);color:var(--cyan);font-weight:900}
+    .tag{display:inline-block;border-radius:7px;padding:3px 8px;margin:3px 4px 3px 0;background:rgba(107,167,255,.1);color:#b9d3ff;font-size:11px}
+    .callout{padding:17px 20px;border-radius:14px;border-left:4px solid var(--orange);background:rgba(255,179,92,.08);color:#f1d2ad;margin:18px 0}
+    .callout.ok{border-color:var(--green);background:rgba(98,223,160,.07);color:#bcebd2}
+    .callout.danger{border-color:var(--red);background:rgba(255,115,131,.07);color:#ffc3ca}
+    .figure{padding:26px;margin:26px 0}.figure svg{width:100%;height:auto;display:block}.caption{color:var(--muted);font-size:12px;margin-top:13px;text-align:center}
+    .steps{counter-reset:step;display:grid;gap:18px}.step{counter-increment:step;position:relative;padding:24px 24px 24px 78px;border:1px solid var(--line);border-radius:18px;background:rgba(13,26,43,.78)}
+    .step:before{content:counter(step,decimal-leading-zero);position:absolute;left:20px;top:22px;width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(135deg,var(--cyan),var(--blue));color:#06111c;font-weight:900}
+    .step h3,.step h4{margin-top:0}.step p{color:#c2d2e4}
+    pre{position:relative;margin:14px 0 0;padding:45px 18px 17px;overflow:auto;border:1px solid #263c55;border-radius:13px;background:#06101c;color:#d9e9fb;font:12.5px/1.7 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2}
+    pre:before{content:attr(data-lang);position:absolute;left:17px;top:10px;color:#6f879f;font:700 10px/1.5 Inter,sans-serif;letter-spacing:.12em}
+    .copy{position:absolute;right:9px;top:8px;padding:5px 9px;border:1px solid #2a415c;border-radius:7px;background:#0e2136;color:#a9bed4;font-size:10px;cursor:pointer}.copy:hover{color:white;border-color:var(--cyan)}
+    code{padding:.16em .4em;border-radius:5px;background:#10253b;color:#8ee8e1;font-family:ui-monospace,SFMono-Regular,Consolas,monospace}
+    pre code{padding:0;background:none;color:inherit}
+    table{width:100%;border-collapse:collapse;margin:16px 0;border-radius:14px;overflow:hidden}
+    th,td{padding:12px 14px;border:1px solid var(--line);text-align:left;vertical-align:top}th{background:#122842;color:#ddecff;font-size:12px}td{color:#b9c9dc}
+    .checklist{list-style:none;padding:0}.checklist li{position:relative;padding:7px 0 7px 29px}.checklist li:before{content:"✓";position:absolute;left:0;color:var(--green);font-weight:900}
+    .timeline{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:24px}.phase{padding:16px 12px;border-top:3px solid var(--cyan);background:rgba(17,36,58,.6);border-radius:4px 4px 12px 12px}.phase b{display:block;color:var(--cyan)}
+    .footer{margin-top:90px;padding:30px;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+    .print-only{display:none}
+    @media(max-width:900px){.hero{grid-template-columns:1fr;min-height:auto}.g3,.g4{grid-template-columns:1fr 1fr}.timeline{grid-template-columns:1fr}.topnav{display:none}}
+    @media(max-width:620px){.wrap{padding:0 14px 50px}.hero{padding:48px 0}.g2,.g3,.g4{grid-template-columns:1fr}.step{padding-left:20px;padding-top:80px}.step:before{top:20px}.figure{padding:12px}h1{font-size:39px}}
+    @media print{body{background:white;color:#172033;font-size:10pt}.topbar,.progress,.copy{display:none}.wrap{max-width:none;padding:0 12mm}.hero{min-height:auto;padding:16mm 0}.hero-art,.figure,.card,.step{box-shadow:none;background:white;border-color:#ccd5df}h1,h2,h3,h4{color:#10203a}h1 span{color:#146e85}.lead,.sub,p,td,.caption{color:#405168}.callout{color:#674d28}.print-only{display:block}section{break-inside:avoid-page;margin-top:16mm}pre{white-space:pre-wrap;word-break:break-all;background:#f4f7fa;color:#172033;border-color:#ccd5df}}
+  </style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand"><i>HERMES</i> / AI SKILL</div>
+    <nav class="topnav">
+      <a href="#overview">目标</a><a href="#architecture">架构</a><a href="#install">部署</a>
+      <a href="#wecom">企微</a><a href="#prd">PRD Skill</a><a href="#training">培训</a>
+      <a href="#security">安全</a><a href="#acceptance">验收</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero">
+    <div>
+      <div class="eyebrow"><span class="dot"></span>企业 AI Agent 落地 · 宣讲培训版</div>
+      <h1>本地部署<br><span>Hermes Agent</span><br>到 PRD 一键发布</h1>
+      <p class="lead">在 Ubuntu 上搭建 Hermes Agent，以 Cursor CLI 登录态经
+        <code>agent-cli-to-api</code> 转为本机 OpenAI 兼容接口，连接企业微信 AI Bot，
+        再把 Agent 编写的 PRD 一键发布到 Git Page Docs / GitHub Pages 文档站。</p>
+      <div class="meta">
+        <span class="pill">文档版本 v1.0</span><span class="pill">更新：2026-07-17</span>
+        <span class="pill">适用：PoC / 内部培训</span><span class="pill">预计实操：120–180 分钟</span>
+      </div>
+    </div>
+    <div class="hero-art" aria-label="方案概览插图">
+      <svg viewBox="0 0 620 560" role="img">
+        <defs>
+          <linearGradient id="ga" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#41d9d0"/><stop offset="1" stop-color="#6ba7ff"/></linearGradient>
+          <filter id="glow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+        </defs>
+        <g opacity=".15" stroke="#91abc5"><path d="M0 70h620M0 140h620M0 210h620M0 280h620M0 350h620M0 420h620M0 490h620"/><path d="M70 0v560M140 0v560M210 0v560M280 0v560M350 0v560M420 0v560M490 0v560M560 0v560"/></g>
+        <circle cx="310" cy="275" r="124" fill="#07111f" stroke="url(#ga)" stroke-width="3" filter="url(#glow)"/>
+        <path d="M262 222l48-28 48 28v57c0 47-48 72-48 72s-48-25-48-72z" fill="none" stroke="#41d9d0" stroke-width="8"/>
+        <circle cx="292" cy="265" r="7" fill="#6ba7ff"/><circle cx="328" cy="265" r="7" fill="#6ba7ff"/>
+        <path d="M286 292q24 20 48 0" fill="none" stroke="#ad8cff" stroke-width="6" stroke-linecap="round"/>
+        <g font-family="Inter, sans-serif" font-size="14" text-anchor="middle">
+          <g transform="translate(62 60)"><rect width="170" height="82" rx="18" fill="#11243a" stroke="#41d9d0"/><text x="85" y="34" fill="#41d9d0" font-weight="800">Cursor CLI</text><text x="85" y="58" fill="#9fb1c7">账号登录态</text></g>
+          <g transform="translate(388 60)"><rect width="170" height="82" rx="18" fill="#11243a" stroke="#6ba7ff"/><text x="85" y="34" fill="#6ba7ff" font-weight="800">OpenAI API</text><text x="85" y="58" fill="#9fb1c7">127.0.0.1:8000</text></g>
+          <g transform="translate(30 414)"><rect width="190" height="82" rx="18" fill="#11243a" stroke="#62dfa0"/><text x="95" y="34" fill="#62dfa0" font-weight="800">企业微信</text><text x="95" y="58" fill="#9fb1c7">AI Bot · WebSocket</text></g>
+          <g transform="translate(400 414)"><rect width="190" height="82" rx="18" fill="#11243a" stroke="#ad8cff"/><text x="95" y="34" fill="#ad8cff" font-weight="800">PRD 文档站</text><text x="95" y="58" fill="#9fb1c7">Git Page Docs</text></g>
+        </g>
+        <g fill="none" stroke-width="3" stroke-dasharray="8 7">
+          <path d="M230 101h92q72 0 72 62" stroke="#41d9d0"/><path d="M472 142v48q0 64-46 74" stroke="#6ba7ff"/>
+          <path d="M255 340q-53 20-91 74" stroke="#62dfa0"/><path d="M367 345q53 19 87 69" stroke="#ad8cff"/>
+        </g>
+        <text x="310" y="395" text-anchor="middle" fill="#e9f2ff" font-family="Inter" font-size="17" font-weight="800">HERMES AGENT</text>
+      </svg>
+    </div>
+  </section>
+
+  <section id="overview">
+    <div class="section-no">01 / OUTCOME</div><h2>培训目标与最终交付</h2>
+    <p class="sub">这不是“装完能聊天”的演示，而是一条可复现、可审计、可回滚的企业内容生产链路。</p>
+    <div class="grid g4" style="margin-top:24px">
+      <article class="card"><div class="icon">01</div><h3>本地 Agent</h3><p>Ubuntu 普通用户运行 Hermes，具备文件、Skill、Gateway 能力。</p></article>
+      <article class="card"><div class="icon">02</div><h3>模型适配</h3><p>Cursor CLI 登录态由本机网关转换成 <code>/v1/chat/completions</code>。</p></article>
+      <article class="card"><div class="icon">03</div><h3>企微入口</h3><p>员工在企业微信私聊或群聊触发 Hermes，采用白名单控制访问。</p></article>
+      <article class="card"><div class="icon">04</div><h3>PRD 发布</h3><p>执行 Skill 后完成校验、复制、提交、推送、Pages 发布和消息回执。</p></article>
+    </div>
+    <h3>边界先讲清楚</h3>
+    <div class="grid g2">
+      <div class="callout danger"><b>Cursor 转 API 是社区桥接，不是 Cursor 官方模型 API。</b><br>上线前必须核对 Cursor 当前服务条款、企业订阅策略、自动化调用与共享账号规则。禁止将个人登录态做成公共 API，也不要承诺“无限量/零成本”。</div>
+      <div class="callout"><b>GitHub Pages 的网页可能公开可访问。</b><br>即使源仓库为私有，Pages 的可见性仍取决于组织套餐与设置。含客户信息、商业机密、密钥的 PRD 应使用 GitHub Enterprise 可控 Pages 或内网自托管。</div>
+    </div>
+  </section>
+
+  <section id="architecture">
+    <div class="section-no">02 / ARCHITECTURE</div><h2>一张图理解端到端架构</h2>
+    <div class="figure">
+      <svg viewBox="0 0 1160 500" role="img" aria-label="端到端技术架构图">
+        <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#6ba7ff"/></marker></defs>
+        <g font-family="Inter,'Microsoft YaHei',sans-serif">
+          <rect x="18" y="18" width="1124" height="450" rx="24" fill="#091523" stroke="#243951"/>
+          <text x="48" y="55" fill="#9fb1c7" font-size="13">Ubuntu 22.04 / 24.04 LTS · 专用普通用户 hermes · systemd 守护</text>
+          <g transform="translate(48 92)">
+            <rect width="190" height="105" rx="17" fill="#10243a" stroke="#62dfa0"/><text x="95" y="39" text-anchor="middle" fill="#62dfa0" font-weight="800">企业微信 AI Bot</text><text x="95" y="68" text-anchor="middle" fill="#9fb1c7" font-size="12">WSS 双向消息</text><text x="95" y="88" text-anchor="middle" fill="#9fb1c7" font-size="12">白名单 / 群策略</text>
+          </g>
+          <g transform="translate(350 92)">
+            <rect width="210" height="105" rx="17" fill="#10243a" stroke="#41d9d0"/><text x="105" y="39" text-anchor="middle" fill="#41d9d0" font-weight="800">Hermes Gateway</text><text x="105" y="68" text-anchor="middle" fill="#9fb1c7" font-size="12">会话 · 工具 · Skill</text><text x="105" y="88" text-anchor="middle" fill="#9fb1c7" font-size="12">自定义 OpenAI Endpoint</text>
+          </g>
+          <g transform="translate(675 92)">
+            <rect width="210" height="105" rx="17" fill="#10243a" stroke="#6ba7ff"/><text x="105" y="39" text-anchor="middle" fill="#6ba7ff" font-weight="800">agent-cli-to-api</text><text x="105" y="68" text-anchor="middle" fill="#9fb1c7" font-size="12">127.0.0.1:8000/v1</text><text x="105" y="88" text-anchor="middle" fill="#9fb1c7" font-size="12">Bearer Token</text>
+          </g>
+          <g transform="translate(952 92)">
+            <rect width="160" height="105" rx="17" fill="#10243a" stroke="#ad8cff"/><text x="80" y="39" text-anchor="middle" fill="#ad8cff" font-weight="800">Cursor CLI</text><text x="80" y="68" text-anchor="middle" fill="#9fb1c7" font-size="12">agent login</text><text x="80" y="88" text-anchor="middle" fill="#9fb1c7" font-size="12">Cursor Cloud</text>
+          </g>
+          <g fill="none" stroke="#6ba7ff" stroke-width="3" marker-end="url(#arrow)"><path d="M238 145h102"/><path d="M560 145h105"/><path d="M885 145h57"/></g>
+          <g transform="translate(350 300)">
+            <rect width="210" height="110" rx="17" fill="#10243a" stroke="#ffb35c"/><text x="105" y="37" text-anchor="middle" fill="#ffb35c" font-weight="800">prd-publisher Skill</text><text x="105" y="66" text-anchor="middle" fill="#9fb1c7" font-size="12">校验 → 脱敏 → 版本化</text><text x="105" y="87" text-anchor="middle" fill="#9fb1c7" font-size="12">调用 publish-prd.sh</text>
+          </g>
+          <g transform="translate(675 300)">
+            <rect width="210" height="110" rx="17" fill="#10243a" stroke="#ad8cff"/><text x="105" y="37" text-anchor="middle" fill="#ad8cff" font-weight="800">PRD Git 仓库</text><text x="105" y="66" text-anchor="middle" fill="#9fb1c7" font-size="12">Git Page Docs</text><text x="105" y="87" text-anchor="middle" fill="#9fb1c7" font-size="12">Markdown + 历史版本</text>
+          </g>
+          <g transform="translate(952 300)">
+            <rect width="160" height="110" rx="17" fill="#10243a" stroke="#62dfa0"/><text x="80" y="37" text-anchor="middle" fill="#62dfa0" font-weight="800">GitHub Pages</text><text x="80" y="66" text-anchor="middle" fill="#9fb1c7" font-size="12">Actions 构建</text><text x="80" y="87" text-anchor="middle" fill="#9fb1c7" font-size="12">共享网址</text>
+          </g>
+          <g fill="none" stroke="#6ba7ff" stroke-width="3" marker-end="url(#arrow)"><path d="M455 197v93"/><path d="M560 355h105"/><path d="M885 355h57"/></g>
+        </g>
+      </svg>
+      <div class="caption">关键安全设计：模型转换接口只监听回环地址；外部用户只通过企业微信接入；发布动作走独立 Git 凭据。</div>
+    </div>
+    <table>
+      <thead><tr><th>组件</th><th>职责</th><th>默认端口 / 协议</th><th>是否对公网开放</th></tr></thead>
+      <tbody>
+        <tr><td>Cursor CLI</td><td>使用授权账号执行模型请求</td><td>出站 HTTPS</td><td>否</td></tr>
+        <tr><td>agent-cli-to-api</td><td>CLI → OpenAI 兼容 API</td><td>127.0.0.1:8000</td><td><b>禁止</b></td></tr>
+        <tr><td>Hermes Gateway</td><td>Agent、Skill、企业微信通道</td><td>出站 WSS</td><td>AI Bot 模式无需入站端口</td></tr>
+        <tr><td>Git Page Docs</td><td>Markdown 文档结构与静态站构建</td><td>Git / Actions</td><td>按企业策略</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="install">
+    <div class="section-no">03 / INSTALLATION</div><h2>Ubuntu 环境部署操作手册</h2>
+    <p class="sub">以下命令以专用用户 <code>hermes</code> 为例。不要用 root 登录 Cursor，也不要让多个 Linux 用户混用同一份认证目录。</p>
+    <div class="steps">
+      <article class="step">
+        <h3>准备主机和专用账号</h3>
+        <p>建议 PoC 至少 2 vCPU / 4 GB RAM / 30 GB 磁盘，Ubuntu 22.04 或 24.04 LTS。先更新系统并创建低权限账号。</p>
+        <pre data-lang="BASH"><code>sudo apt update &amp;&amp; sudo apt upgrade -y
+sudo apt install -y git curl xz-utils build-essential ca-certificates jq
+sudo adduser --disabled-password --gecos "" hermes
+sudo install -d -o hermes -g hermes /srv/prd-site
+sudo -iu hermes</code></pre>
+        <div class="callout">生产环境建议启用磁盘加密、自动安全更新、主机 EDR，并限制该账号的 <code>sudo</code> 权限。Hermes 可执行工具命令，权限边界就是风险边界。</div>
+      </article>
+
+      <article class="step">
+        <h3>安装 Cursor CLI 并完成账号登录</h3>
+        <p>必须在未来运行 systemd 服务的同一个 <code>hermes</code> 用户下登录，以便服务读取同一份认证状态。</p>
+        <pre data-lang="BASH"><code>curl https://cursor.com/install -fsS | bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' &gt;&gt; ~/.bashrc
+source ~/.bashrc
+
+agent --version
+agent login
+agent status
+agent models</code></pre>
+        <p>无桌面服务器可按 CLI 提示复制登录链接到个人浏览器完成认证。若企业禁止交互式 OAuth，请改用企业批准的官方 API 供应商，不要绕过策略。</p>
+        <div class="callout ok"><b>检查点：</b><code>agent status</code> 显示已登录，并且执行一次测试问答能正常返回后再进入下一步。</div>
+      </article>
+
+      <article class="step">
+        <h3>安装 uv 与 agent-cli-to-api</h3>
+        <p>社区项目当前要求 Python 3.10+，推荐使用 uv。培训环境建议锁定经过验证的 commit，不要让生产服务每天追踪 main。</p>
+        <pre data-lang="BASH"><code>curl -LsSf https://astral.sh/uv/install.sh | sh
+source ~/.bashrc
+cd ~
+git clone https://github.com/leeguooooo/agent-cli-to-api.git
+cd agent-cli-to-api
+git rev-parse HEAD | tee DEPLOYED_COMMIT
+uv sync
+
+# 诊断 CLI 和依赖
+uv run agent-cli-to-api doctor</code></pre>
+        <p><span class="tag">供应链建议</span> 建立内部 fork；审查依赖；保存 commit SHA；升级前在测试机回归；不要直接把远程脚本作为 root 执行。</p>
+      </article>
+
+      <article class="step">
+        <h3>生成网关令牌并前台试运行</h3>
+        <pre data-lang="BASH"><code>GATEWAY_TOKEN="$(openssl rand -hex 32)"
+umask 077
+printf 'CODEX_GATEWAY_TOKEN=%s\nCODEX_LOG_MODE=summary\n' "$GATEWAY_TOKEN" \
+  &gt; ~/agent-cli-to-api/gateway.env
+
+cd ~/agent-cli-to-api
+set -a; source gateway.env; set +a
+uv run agent-cli-to-api cursor-agent --host 127.0.0.1 --port 8000</code></pre>
+        <p>另开一个终端执行：</p>
+        <pre data-lang="BASH"><code>sudo -iu hermes
+TOKEN="$(cut -d= -f2 ~/agent-cli-to-api/gateway.env | head -1)"
+curl -fsS http://127.0.0.1:8000/healthz
+curl -fsS http://127.0.0.1:8000/v1/models \
+  -H "Authorization: Bearer $TOKEN" | jq
+curl -fsS http://127.0.0.1:8000/v1/chat/completions \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"model":"auto","stream":false,"messages":[{"role":"user","content":"只回复 API_OK"}]}' | jq</code></pre>
+      </article>
+
+      <article class="step">
+        <h3>用 systemd 托管转换网关</h3>
+        <p>退出到管理员账号，创建服务。<code>HOME</code> 和 <code>PATH</code> 必须正确，否则服务找不到 Cursor CLI 或登录态。</p>
+        <pre data-lang="INI"><code># /etc/systemd/system/agent-cli-to-api.service
+[Unit]
+Description=Cursor CLI to OpenAI-compatible API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=hermes
+Group=hermes
+WorkingDirectory=/home/hermes/agent-cli-to-api
+Environment=HOME=/home/hermes
+Environment=PATH=/home/hermes/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+EnvironmentFile=/home/hermes/agent-cli-to-api/gateway.env
+ExecStart=/home/hermes/agent-cli-to-api/.venv/bin/agent-cli-to-api cursor-agent --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/home/hermes
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+        <pre data-lang="BASH"><code>sudo chmod 600 /home/hermes/agent-cli-to-api/gateway.env
+sudo systemctl daemon-reload
+sudo systemctl enable --now agent-cli-to-api
+sudo systemctl status agent-cli-to-api --no-pager
+sudo journalctl -u agent-cli-to-api -n 100 --no-pager</code></pre>
+      </article>
+
+      <article class="step">
+        <h3>安装 Hermes Agent</h3>
+        <p>切回 <code>hermes</code> 用户。官方安装器会处理 Python、Node.js、ripgrep、ffmpeg 等依赖。</p>
+        <pre data-lang="BASH"><code>sudo -iu hermes
+curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
+source ~/.bashrc
+hermes doctor
+hermes setup</code></pre>
+        <p>如服务器不需要浏览器自动化，可使用：</p>
+        <pre data-lang="BASH"><code>curl -fsSL https://hermes-agent.nousresearch.com/install.sh \
+  | bash -s -- --skip-browser</code></pre>
+      </article>
+
+      <article class="step">
+        <h3>让 Hermes 使用本机 Cursor 转换 API</h3>
+        <p>推荐运行 <code>hermes model</code>，选择 <b>Custom / OpenAI-compatible endpoint</b>，或核对以下配置。模型和 URL 放 <code>config.yaml</code>，令牌放权限为 600 的 <code>.env</code>。</p>
+        <pre data-lang="YAML"><code># ~/.hermes/config.yaml（合并到现有 model 段，不要覆盖其他配置）
+model:
+  default: auto
+  provider: custom
+  base_url: http://127.0.0.1:8000/v1</code></pre>
+        <pre data-lang="BASH"><code># 把同一个 gateway token 写入 Hermes secret 文件
+TOKEN="$(cut -d= -f2 ~/agent-cli-to-api/gateway.env | head -1)"
+umask 077
+printf '\nOPENAI_API_KEY=%s\n' "$TOKEN" &gt;&gt; ~/.hermes/.env
+chmod 600 ~/.hermes/.env ~/.hermes/config.yaml
+
+hermes config check
+hermes doctor
+hermes</code></pre>
+        <div class="callout danger">不要重复添加多个 <code>model:</code> 顶层键。先备份 <code>cp ~/.hermes/config.yaml ~/.hermes/config.yaml.bak</code>，再合并配置。不同 Hermes 版本的向导字段可能变化，以当期官方文档与 <code>hermes model</code> 为准。</div>
+      </article>
+    </div>
+  </section>
+
+  <section id="wecom">
+    <div class="section-no">04 / WECOM</div><h2>部署企业微信双向 AI 机器人</h2>
+    <p class="sub">Hermes 已原生支持企业微信 AI Bot WebSocket 网关。它不是传统“群机器人 webhook”：WebSocket 方案能收发消息、无需公网入站端口，最适合本方案。</p>
+    <div class="grid g3" style="margin-top:22px">
+      <div class="card"><div class="kpi">WSS</div><h4>双向实时</h4><p>连接 <code>wss://openws.work.weixin.qq.com</code>，断线自动重连。</p></div>
+      <div class="card"><div class="kpi">0</div><h4>公网入站端口</h4><p>AI Bot 模式只需出站网络，不必暴露回调服务。</p></div>
+      <div class="card"><div class="kpi">ACL</div><h4>访问控制</h4><p>私聊、群组和群内用户均可配置 allowlist。</p></div>
+    </div>
+    <div class="steps" style="margin-top:24px">
+      <article class="step">
+        <h3>创建并绑定企业微信 AI Bot</h3>
+        <ol>
+          <li>在 Hermes 主机执行 <code>hermes gateway setup</code>。</li>
+          <li>选择 <b>WeCom（企业微信）</b>。</li>
+          <li>推荐用企业微信手机端扫描终端二维码；无法扫码时，到管理后台创建 AI Bot，手工填入 Bot ID 与 Secret。</li>
+          <li>配置通知主频道，并选择白名单策略。</li>
+        </ol>
+        <pre data-lang="BASH"><code>hermes gateway setup
+# 完成后检查密钥文件权限
+chmod 600 ~/.hermes/.env ~/.hermes/config.yaml</code></pre>
+      </article>
+      <article class="step">
+        <h3>生产环境不要使用 open 策略</h3>
+        <pre data-lang="YAML"><code># ~/.hermes/config.yaml 示例片段
+platforms:
+  wecom:
+    enabled: true
+    extra:
+      dm_policy: allowlist
+      group_policy: allowlist
+      allow_from:
+        - user_product_owner
+        - user_admin
+      group_allow_from:
+        - prd_pilot_group_id
+      groups:
+        prd_pilot_group_id:
+          allow_from:
+            - user_product_owner
+            - user_product_manager</code></pre>
+        <p>Bot ID、Secret 建议由向导写入 <code>~/.hermes/.env</code>，不要提交到 Git。</p>
+      </article>
+      <article class="step">
+        <h3>启动并验证 Gateway</h3>
+        <pre data-lang="BASH"><code>hermes gateway
+# 在企业微信向机器人发送：
+# “只回复 WECOM_OK，不要调用工具”</code></pre>
+        <p>再发送：“生成一份员工请假流程 PRD 草稿，保存到 <code>/srv/prd-site/drafts/leave-v1.md</code>，暂不发布。”确认能写入文件后再启用发布 Skill。</p>
+      </article>
+      <article class="step">
+        <h3>托管 Hermes Gateway</h3>
+        <pre data-lang="INI"><code># /etc/systemd/system/hermes-gateway.service
+[Unit]
+Description=Hermes Agent WeCom Gateway
+After=network-online.target agent-cli-to-api.service
+Requires=agent-cli-to-api.service
+
+[Service]
+Type=simple
+User=hermes
+Group=hermes
+Environment=HOME=/home/hermes
+Environment=PATH=/home/hermes/.local/bin:/usr/local/bin:/usr/bin
+ExecStart=/home/hermes/.local/bin/hermes gateway
+Restart=always
+RestartSec=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/home/hermes /srv/prd-site
+
+[Install]
+WantedBy=multi-user.target</code></pre>
+        <pre data-lang="BASH"><code>sudo systemctl daemon-reload
+sudo systemctl enable --now hermes-gateway
+sudo journalctl -u hermes-gateway -f</code></pre>
+      </article>
+    </div>
+    <div class="callout"><b>备选模式：</b>若企业微信租户没有 AI Bot，可在 <code>hermes gateway setup</code> 选择 WeCom Callback（自建应用）。它需要公网 HTTPS 回调、Corp ID、Corp Secret、Agent ID、Token 和 43 字符 EncodingAESKey，默认回调为 <code>/wecom/callback</code>。传统群机器人 Webhook 只能主动推送，不能直接实现双向问答。</div>
+  </section>
+
+  <section id="prd">
+    <div class="section-no">05 / PRD SKILL</div><h2>建立 PRD 共享站与“一键发布”Skill</h2>
+    <p class="sub">选用开源 <a href="https://github.com/Vidigal-code/git-page-docs">Git Page Docs</a> 管理版本化 Markdown，并通过 GitHub Actions 发布到 GitHub Pages。Skill 负责把自然语言动作收敛为一条受控 SOP。</p>
+
+    <h3>5.1 初始化共享站</h3>
+    <div class="steps">
+      <article class="step">
+        <h3>创建 GitHub 仓库并配置凭据</h3>
+        <p>建议创建组织仓库 <code>prd-knowledge-base</code>。敏感 PRD 使用私有仓库，并确认 Pages 的访问策略满足企业要求。</p>
+        <pre data-lang="BASH"><code>sudo -iu hermes
+cd /srv/prd-site
+git init
+git branch -M main
+git config user.name "Hermes PRD Bot"
+git config user.email "hermes-bot@your-company.example"
+
+# 推荐使用机器人账号的 SSH Deploy Key（仅该仓库写权限）
+ssh-keygen -t ed25519 -f ~/.ssh/prd_publish -C "hermes-prd-publisher"
+cat ~/.ssh/prd_publish.pub
+# 将公钥添加到 GitHub 仓库 Settings → Deploy keys，并按需允许写入</code></pre>
+        <pre data-lang="SSH CONFIG"><code># ~/.ssh/config
+Host github-prd
+  HostName github.com
+  User git
+  IdentityFile ~/.ssh/prd_publish
+  IdentitiesOnly yes</code></pre>
+        <pre data-lang="BASH"><code>chmod 600 ~/.ssh/config ~/.ssh/prd_publish
+git remote add origin git@github-prd:YOUR_ORG/prd-knowledge-base.git</code></pre>
+      </article>
+      <article class="step">
+        <h3>生成 Git Page Docs 目录</h3>
+        <pre data-lang="BASH"><code>cd /srv/prd-site
+node --version   # 需 Node.js 18+，推荐 20+
+npx @gitpagedocs/cli
+
+# 生成本地布局，降低运行期依赖官方模板的风险
+npx gitpagedocs --layoutconfig
+git add .
+git commit -m "chore: initialize PRD knowledge base"
+git push -u origin main</code></pre>
+        <p>典型目录：</p>
+        <pre data-lang="TEXT"><code>gitpagedocs/
+├── config.json
+├── layouts/
+└── docs/versions/
+    └── 1.0.0/
+        ├── config.json
+        └── zh/
+            ├── index.md
+            └── employee-leave.md</code></pre>
+      </article>
+      <article class="step">
+        <h3>启用 GitHub Pages</h3>
+        <p>仓库 Settings → Pages → Source 选择 <b>GitHub Actions</b>。也可使用 CLI 一次生成 workflow、提交并推送：</p>
+        <pre data-lang="BASH"><code>cd /srv/prd-site
+npx gitpagedocs --push \
+  --owner YOUR_ORG \
+  --repo prd-knowledge-base</code></pre>
+        <p>发布地址通常为：</p>
+        <pre data-lang="TEXT"><code>https://YOUR_ORG.github.io/prd-knowledge-base/v/1.0.0/?lang=zh</code></pre>
+        <div class="callout">首次使用前应审查 CLI 自动生成的 <code>.github/workflows/gitpagedocs-pages.yml</code>。把 Actions 依赖固定到 commit SHA，最小化 <code>GITHUB_TOKEN</code> 权限。</div>
+      </article>
+    </div>
+
+    <h3>5.2 设计 Skill 目录</h3>
+    <div class="figure">
+      <svg viewBox="0 0 1100 310" role="img" aria-label="PRD发布流水线">
+        <defs><marker id="a2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#41d9d0"/></marker></defs>
+        <g font-family="Inter,'Microsoft YaHei',sans-serif" text-anchor="middle">
+          <g fill="#10243a" stroke="#243951">
+            <rect x="25" y="90" width="160" height="100" rx="18"/><rect x="245" y="90" width="160" height="100" rx="18"/><rect x="465" y="90" width="160" height="100" rx="18"/><rect x="685" y="90" width="160" height="100" rx="18"/><rect x="905" y="90" width="160" height="100" rx="18"/>
+          </g>
+          <g font-size="15" font-weight="800"><text x="105" y="133" fill="#6ba7ff">PRD 草稿</text><text x="325" y="133" fill="#ffb35c">质量门禁</text><text x="545" y="133" fill="#41d9d0">版本化入库</text><text x="765" y="133" fill="#ad8cff">Git Push</text><text x="985" y="133" fill="#62dfa0">Pages + 回执</text></g>
+          <g font-size="11" fill="#9fb1c7"><text x="105" y="160">Agent 编写</text><text x="325" y="160">模板 / 敏感词 / 链接</text><text x="545" y="160">Markdown + 元数据</text><text x="765" y="160">可审计 commit</text><text x="985" y="160">企微发送 URL</text></g>
+          <g stroke="#41d9d0" stroke-width="3" marker-end="url(#a2)"><path d="M185 140h50"/><path d="M405 140h50"/><path d="M625 140h50"/><path d="M845 140h50"/></g>
+          <text x="550" y="250" fill="#9fb1c7" font-size="13">任一步失败即停止，不产生“看似成功”的发布回执</text>
+        </g>
+      </svg>
+    </div>
+    <pre data-lang="TEXT"><code>~/.hermes/skills/product/prd-publisher/
+├── SKILL.md
+├── scripts/
+│   └── publish-prd.sh
+├── templates/
+│   └── prd-template.md
+└── references/
+    └── publishing-policy.md</code></pre>
+
+    <h3>5.3 编写 SKILL.md</h3>
+    <pre data-lang="MARKDOWN"><code>---
+name: prd-publisher
+description: Use when the user asks to create, validate, version, or publish a PRD to the shared documentation site.
+version: 1.0.0
+author: Your Company
+platforms: [linux]
+metadata:
+  hermes:
+    tags: [product, prd, publishing, git]
+---
+# PRD Publisher
+
+## When to use
+Use this skill when a user asks to “编写 PRD”“发布 PRD”“更新共享文档”
+or “把需求文档发到网站”.
+
+## Required inputs
+- PRD title and owner
+- source Markdown path under `/srv/prd-site/drafts/`
+- semantic version, default `1.0.0`
+- visibility: `public` or `internal`
+
+## Safety gates
+1. Never publish secrets, access tokens, webhook URLs, credentials, personal IDs,
+   customer data, unreleased financial data, or documents marked confidential.
+2. Publishing requires an explicit user confirmation containing “确认发布”.
+3. Refuse paths outside `/srv/prd-site/drafts/`.
+4. Do not bypass failed validation, failed tests, failed push, or failed Pages build.
+5. Never use `git push --force`.
+
+## Procedure
+1. Draft from `templates/prd-template.md`.
+2. Verify required sections: background, goals, non-goals, personas, flows,
+   requirements, acceptance criteria, metrics, risks, rollout and rollback.
+3. Scan for secrets and sensitive fields. If found, stop and report locations.
+4. Present title, version, target URL and diff summary; request “确认发布”.
+5. After confirmation run:
+   `scripts/publish-prd.sh SOURCE VERSION SLUG`
+6. Parse the final `PUBLISHED_URL=...` line.
+7. Send a WeCom reply with title, version, commit SHA and URL.
+
+## Verification
+- script exit code is 0
+- remote commit SHA equals local HEAD
+- published URL returns HTTP 200 within the configured timeout
+- reply contains no credential or webhook secret
+
+## Rollback
+Create a normal revert commit with `git revert &lt;sha&gt;`, push it, wait for Pages,
+then post a rollback notice. Never rewrite shared history.</code></pre>
+
+    <h3>5.4 一键发布脚本</h3>
+    <p>以下是培训版基线。Git Page Docs 的版本配置文件需要登记页面路由，实际项目应在脚本中增加 JSON 路由更新，或使用其 <code>gitpagedocs document:file</code> 命令生成并挂载页面。</p>
+    <pre data-lang="BASH"><code>#!/usr/bin/env bash
+set -Eeuo pipefail
+
+SOURCE="${1:?用法: publish-prd.sh SOURCE VERSION SLUG}"
+VERSION="${2:?缺少 VERSION，例如 1.0.0}"
+SLUG="${3:?缺少 SLUG，例如 employee-leave}"
+REPO="/srv/prd-site"
+SOURCE_REAL="$(realpath "$SOURCE")"
+DRAFT_ROOT="$(realpath "$REPO/drafts")"
+TARGET_DIR="$REPO/gitpagedocs/docs/versions/$VERSION/zh"
+TARGET="$TARGET_DIR/$SLUG.md"
+SITE="https://YOUR_ORG.github.io/prd-knowledge-base/v/$VERSION/?lang=zh&amp;name=$SLUG"
+
+[[ "$SOURCE_REAL" == "$DRAFT_ROOT/"* ]] || {
+  echo "拒绝：源文件必须位于 $DRAFT_ROOT" &gt;&amp;2; exit 2;
+}
+[[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || {
+  echo "拒绝：VERSION 必须是语义化版本" &gt;&amp;2; exit 2;
+}
+[[ "$SLUG" =~ ^[a-z0-9][a-z0-9-]{1,62}$ ]] || {
+  echo "拒绝：SLUG 只能包含小写字母、数字和连字符" &gt;&amp;2; exit 2;
+}
+
+# 基础质量门禁
+for heading in "背景" "目标" "功能需求" "验收标准" "风险" "回滚"; do
+  grep -q "$heading" "$SOURCE_REAL" || {
+    echo "校验失败：缺少章节 $heading" &gt;&amp;2; exit 3;
+  }
+done
+
+# 凭据和高风险字段扫描；企业应接入 gitleaks + DLP
+if grep -Eni \
+  '(BEGIN (RSA|OPENSSH) PRIVATE KEY|api[_-]?key\s*[:=]|secret\s*[:=]|password\s*[:=]|qyapi\.weixin\.qq\.com/cgi-bin/webhook/send\?key=)' \
+  "$SOURCE_REAL"; then
+  echo "校验失败：疑似包含密钥或 webhook" &gt;&amp;2; exit 4
+fi
+
+mkdir -p "$TARGET_DIR"
+install -m 0644 "$SOURCE_REAL" "$TARGET"
+
+cd "$REPO"
+git pull --ff-only origin main
+git add "$TARGET" gitpagedocs/
+git diff --cached --quiet &amp;&amp; {
+  echo "没有内容变化，无需发布"; exit 0;
+}
+git commit -m "docs(prd): publish $SLUG v$VERSION"
+git push origin main
+
+SHA="$(git rev-parse --short HEAD)"
+REMOTE_SHA="$(git ls-remote origin refs/heads/main | cut -c1-7)"
+[[ "$SHA" == "$REMOTE_SHA" ]] || {
+  echo "校验失败：远端 SHA 与本地不一致" &gt;&amp;2; exit 5;
+}
+
+echo "COMMIT_SHA=$SHA"
+echo "PUBLISHED_URL=$SITE"</code></pre>
+    <p>安装脚本：</p>
+    <pre data-lang="BASH"><code>mkdir -p ~/.hermes/skills/product/prd-publisher/{scripts,templates,references}
+# 分别保存上面的 SKILL.md 与 publish-prd.sh
+chmod 700 ~/.hermes/skills/product/prd-publisher/scripts/publish-prd.sh
+mkdir -p /srv/prd-site/drafts
+
+# 新会话中检查 Skill 是否出现
+hermes
+# 输入：/skills
+# 或直接说：请使用 prd-publisher skill 校验这份 PRD</code></pre>
+
+    <h3>5.5 使用者的一句话工作流</h3>
+    <div class="grid g2">
+      <div class="card"><h4>先编写，不发布</h4><p>“为采购审批系统编写 v1.0 PRD，负责人张三，保存为草稿；补齐用户流程、验收标准和回滚方案，暂不发布。”</p></div>
+      <div class="card"><h4>人工确认后发布</h4><p>“检查采购审批 PRD 的敏感信息和必填章节，展示变更摘要。目标版本 1.0.0，slug 为 procurement-approval。确认发布。”</p></div>
+    </div>
+    <div class="callout ok"><b>理想回执：</b>“已发布《采购审批系统 PRD》v1.0.0；Commit <code>a1b2c3d</code>；访问地址 …；质量门禁全部通过。”</div>
+  </section>
+
+  <section id="training">
+    <div class="section-no">06 / ENABLEMENT</div><h2>宣讲与实操培训设计</h2>
+    <div class="timeline">
+      <div class="phase"><b>模块 1 · 15min</b>价值与边界<br>看懂架构、合规风险</div>
+      <div class="phase"><b>模块 2 · 35min</b>基础部署<br>Cursor CLI 与 API 网关</div>
+      <div class="phase"><b>模块 3 · 25min</b>Agent 接入<br>Hermes 与企业微信</div>
+      <div class="phase"><b>模块 4 · 45min</b>Skill 实战<br>PRD 校验与一键发布</div>
+      <div class="phase"><b>模块 5 · 20min</b>演练验收<br>故障、回滚、安全问答</div>
+    </div>
+    <h3>讲师演示脚本</h3>
+    <div class="grid g3">
+      <div class="card"><h4>Demo A：自然语言成文</h4><p>企微发出需求 → Hermes 追问缺失信息 → 输出结构化草稿。</p><b>观察点：</b>Agent 不应臆造业务规则。</div>
+      <div class="card"><h4>Demo B：安全门禁</h4><p>在草稿中放入假 webhook → 请求发布 → Skill 必须拦截并指出行号。</p><b>观察点：</b>失败不能返回发布成功。</div>
+      <div class="card"><h4>Demo C：发布与回滚</h4><p>确认发布 → Pages 可见 → 制造错误 → <code>git revert</code> → 企微通知。</p><b>观察点：</b>历史可追溯。</div>
+    </div>
+    <h3>学员练习</h3>
+    <ol>
+      <li>完成主机、CLI、API 三层健康检查，并截图保留结果。</li>
+      <li>把企微策略从 <code>open</code> 改成白名单，验证未授权用户无法触发。</li>
+      <li>按模板编写一个“访客预约”PRD，故意遗漏“回滚”章节，观察质量门禁。</li>
+      <li>补齐后确认发布，记录 commit SHA 和 Pages URL。</li>
+      <li>执行一次非强推回滚，并验证网站内容恢复。</li>
+    </ol>
+  </section>
+
+  <section id="security">
+    <div class="section-no">07 / SECURITY</div><h2>安全、合规与生产化要求</h2>
+    <div class="grid g3">
+      <article class="card"><div class="icon">A</div><h3>账号</h3><ul class="checklist"><li>独立服务账号</li><li>禁止共享个人账号</li><li>定期复核订阅条款</li><li>人员离职立即撤权</li></ul></article>
+      <article class="card"><div class="icon">N</div><h3>网络</h3><ul class="checklist"><li>API 仅监听 127.0.0.1</li><li>不做公网反向代理</li><li>限制主机出站域名</li><li>Callback 必须 HTTPS</li></ul></article>
+      <article class="card"><div class="icon">D</div><h3>数据</h3><ul class="checklist"><li>PRD 分级分类</li><li>发布前 DLP 扫描</li><li>日志不记录完整 Prompt</li><li>设置保存与删除周期</li></ul></article>
+      <article class="card"><div class="icon">S</div><h3>密钥</h3><ul class="checklist"><li>文件权限 600</li><li>不进入 Git</li><li>90 天轮换</li><li>优先 Vault / KMS</li></ul></article>
+      <article class="card"><div class="icon">C</div><h3>供应链</h3><ul class="checklist"><li>内部 fork</li><li>固定 commit / 版本</li><li>Actions 固定 SHA</li><li>升级先灰度回归</li></ul></article>
+      <article class="card"><div class="icon">R</div><h3>审计</h3><ul class="checklist"><li>提交人和时间</li><li>发布审批证据</li><li>企微操作日志</li><li>季度恢复演练</li></ul></article>
+    </div>
+    <h3>威胁与控制矩阵</h3>
+    <table>
+      <thead><tr><th>风险</th><th>可能后果</th><th>必须控制</th></tr></thead>
+      <tbody>
+        <tr><td>API 网关暴露公网</td><td>账号滥用、文件读取、命令执行</td><td>绑定 127.0.0.1、Bearer Token、防火墙拒绝 8000 入站</td></tr>
+        <tr><td>Prompt Injection</td><td>诱导发布机密或执行危险命令</td><td>Skill 硬门禁、固定路径、人工确认、低权限服务账号</td></tr>
+        <tr><td>PRD 误公开</td><td>商业机密泄露</td><td>文档分级、私有仓库、Pages 可见性验证、DLP</td></tr>
+        <tr><td>社区依赖被篡改</td><td>主机或凭据失陷</td><td>代码审查、锁 commit、依赖扫描、内部镜像</td></tr>
+        <tr><td>并发消耗账号配额</td><td>限流、封禁、成本失控</td><td>限制企微用户和群、请求排队、监控 429/超时</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="ops">
+    <div class="section-no">08 / OPERATIONS</div><h2>运维、故障定位与回滚</h2>
+    <table>
+      <thead><tr><th>症状</th><th>定位命令</th><th>常见原因 / 处理</th></tr></thead>
+      <tbody>
+        <tr><td>API health 正常但模型失败</td><td><code>agent status</code><br><code>journalctl -u agent-cli-to-api</code></td><td>服务用户未登录、认证过期、模型不可用；以 hermes 用户重新登录。</td></tr>
+        <tr><td>Hermes 报 401</td><td><code>curl -H "Authorization: Bearer …"</code></td><td><code>OPENAI_API_KEY</code> 与 <code>CODEX_GATEWAY_TOKEN</code> 不一致。</td></tr>
+        <tr><td>企微机器人不回复</td><td><code>journalctl -u hermes-gateway -f</code></td><td>Bot Secret 错、WSS 出站被拦、用户/群不在白名单。</td></tr>
+        <tr><td>推送成功但网页未更新</td><td>GitHub Actions 日志、Pages 设置</td><td>Workflow 失败、Pages source 错、配置未登记路由；检查构建产物。</td></tr>
+        <tr><td>服务启动找不到 agent</td><td><code>systemctl show … -p Environment</code></td><td>systemd PATH/HOME 错；确保包含 <code>/home/hermes/.local/bin</code>。</td></tr>
+      </tbody>
+    </table>
+    <h3>标准回滚</h3>
+    <pre data-lang="BASH"><code># 文档回滚：保留完整历史，不强推
+cd /srv/prd-site
+git log --oneline -10
+git revert &lt;BAD_COMMIT_SHA&gt;
+git push origin main
+
+# 服务版本回滚：切到已验证 commit 后重新同步并重启
+cd /home/hermes/agent-cli-to-api
+git checkout &lt;VERIFIED_COMMIT_SHA&gt;
+uv sync --frozen
+sudo systemctl restart agent-cli-to-api
+
+# 查看两个服务的最新日志
+sudo journalctl -u agent-cli-to-api -u hermes-gateway -n 200 --no-pager</code></pre>
+  </section>
+
+  <section id="acceptance">
+    <div class="section-no">09 / ACCEPTANCE</div><h2>上线验收清单</h2>
+    <div class="grid g2">
+      <div class="card"><h3>功能验收</h3><ul class="checklist"><li>重启主机后两个 systemd 服务自动恢复</li><li>企微授权用户可双向问答</li><li>未授权用户和群被拒绝</li><li>PRD 缺章节时不能发布</li><li>疑似密钥存在时不能发布</li><li>人工说出“确认发布”后才执行</li><li>发布回执包含 URL 和 commit SHA</li><li>回滚后站点内容恢复</li></ul></div>
+      <div class="card"><h3>安全验收</h3><ul class="checklist"><li>8000 端口只监听 127.0.0.1</li><li>Token、Bot Secret、Deploy Key 不在仓库</li><li>服务以普通用户运行</li><li>Cursor 使用方式已通过法务/采购/信息安全确认</li><li>Pages 可见性经非成员账号实测</li><li>Actions 权限最小化并锁定依赖</li><li>日志脱敏且有保留期限</li><li>账号、密钥轮换和应急负责人已登记</li></ul></div>
+    </div>
+    <h3>建议观测指标</h3>
+    <div class="grid g4">
+      <div class="card"><div class="kpi">&gt;99%</div><p>Gateway 月可用率</p></div>
+      <div class="card"><div class="kpi">&lt;60s</div><p>普通问答 P95（按模型调整）</p></div>
+      <div class="card"><div class="kpi">100%</div><p>发布 commit 可追溯率</p></div>
+      <div class="card"><div class="kpi">0</div><p>密钥与敏感 PRD 公开事件</p></div>
+    </div>
+  </section>
+
+  <section id="sources">
+    <div class="section-no">10 / REFERENCES</div><h2>官方与项目资料</h2>
+    <ul>
+      <li><a href="https://hermes-agent.nousresearch.com/docs/getting-started/installation">Hermes Agent — Installation</a></li>
+      <li><a href="https://hermes-agent.nousresearch.com/docs/integrations/providers">Hermes Agent — AI Providers / Custom Endpoint</a></li>
+      <li><a href="https://hermes-agent.nousresearch.com/docs/zh-Hans/user-guide/messaging/wecom">Hermes Agent — 企业微信 WeCom</a></li>
+      <li><a href="https://hermes-agent.nousresearch.com/docs/user-guide/features/skills">Hermes Agent — Skills System</a></li>
+      <li><a href="https://cursor.com/docs/cli/installation">Cursor — CLI Installation</a></li>
+      <li><a href="https://github.com/leeguooooo/agent-cli-to-api">leeguooooo/agent-cli-to-api</a></li>
+      <li><a href="https://github.com/Vidigal-code/git-page-docs">Vidigal-code/git-page-docs</a></li>
+      <li><a href="https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site">GitHub Docs — Creating a GitHub Pages site</a></li>
+      <li><a href="https://developer.work.weixin.qq.com/document/path/91770">企业微信开发者中心 — 消息推送配置说明</a></li>
+    </ul>
+    <div class="callout">版本提示：本文依据 2026-07-17 可获取的文档编写。社区项目与云服务会变化，实施前应重新核对命令、字段、许可证、服务条款和企业微信租户能力。</div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap" style="padding-bottom:0">Hermes Agent × Cursor CLI × WeCom × Git Page Docs<br>企业 PoC 方案文档 · 请按组织安全基线二次评审后实施</div>
+</footer>
+
+<script>
+  document.querySelectorAll('pre').forEach(function(pre){
+    var b=document.createElement('button');b.className='copy';b.textContent='复制';
+    b.addEventListener('click',async function(){
+      await navigator.clipboard.writeText(pre.querySelector('code').innerText);
+      b.textContent='已复制';setTimeout(function(){b.textContent='复制'},1200);
+    });pre.appendChild(b);
+  });
+  addEventListener('scroll',function(){
+    var h=document.documentElement;
+    document.getElementById('progress').style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+  },{passive:true});
+</script>
+</body>
+</html>
